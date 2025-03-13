@@ -120,3 +120,76 @@ TCelula* Predecessor(TCelula *x){
     }
     return y;
 }
+
+// -- INSERIR --
+//CriaNo
+TCelula* criaNo(TCidade Cidade) {
+    TCelula* novo = (TCelula*)malloc(sizeof(TCelula));
+    if (novo != NULL) {
+        novo->cidade = Cidade;
+        novo->esq = NULL;
+        novo->dir = NULL;
+        novo->pai = NULL;
+    }
+    return novo;
+}
+
+//Inserir
+void Inserir(TCelula **x, TCelula *pai, TCidade Cidade){
+    if((*x) == NULL){
+        (*x) = criaNo(Cidade);
+        if(pai != NULL){
+            (*x)-pai = pai;
+        }
+        return;
+    }
+
+    if((*x)->cidade.chave > Cidade.chave){
+        Inserir(&(*x)->esq, (*x), Cidade);
+        return;
+    }
+    
+    if((*x)->cidade.chave <= Cidade.chave){
+        Inserir(&(*x)->dir, (*x), Cidade);
+    }
+}
+
+// -- RETIRAR -- 
+//Transplante (trocar nós)
+void Transplante(TArvore *Arvore, TCelula **u, TCelula **v){
+    if((*u)->pai == NULL){
+        Arvore->raiz = (*v);
+    } else if((*u) == (*u)->pai->esq){
+        (*u)->pai->esq = (*v);
+    } else{
+        (*u)->pai->dir = (*v);
+    }
+
+    if((*v) != NULL){
+        (*v)->pai = (*u)->pai;
+    }
+}
+
+//Retirar
+void Retirar(TArvore *Arvore, TCelula **z){
+    if(*z == NULL){
+        printf("\n>>>>>>AVISO: NO' \"Z\" E' NULO! <<<<<<");
+        return;
+    }
+    if((*z)->esq == NULL){
+        Transplante(Arvore, z, &(*z)->dir);
+    }else if((*z)->dir == NULL){
+        Transplante(Arvore, z, &(*z)->esq);
+    } else{
+        TCelula *y = Minimo((*z)->dir);
+        if(y->pai != (*z)){
+            Transplante(Arvore, &y, &y->dir);
+            y->dir->pai = y;
+        }
+        Transplante(Arvore, z, &y);
+        y->esq = (*z)->esq;
+        y->esq->pai = y;
+    }
+    free(*z);
+    *z = NULL;
+}
