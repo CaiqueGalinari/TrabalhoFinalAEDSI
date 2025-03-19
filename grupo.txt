@@ -1,5 +1,15 @@
 Caíque Galinari - 24.1.8061
-Danilo
-Erick Yuri -
-Lucas Leão -
-Tharsos Gabriel -
+Implementação do Caixeiro viajante mirim
+Diretor geral
+
+Danilo Carvalho - 24.1.8120
+Implementação da interface
+
+Erick Yuri - 22.1.8111
+Implementação dos métodos aleatórios
+
+Lucas Leão - 19.2.8138
+Implementação dos métodos de ordenação
+
+Tharsos Gabriel - 24.1.8059
+Implementação dos sistemas de busca

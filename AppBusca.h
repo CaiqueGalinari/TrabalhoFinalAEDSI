@@ -36,7 +36,7 @@ typedef struct arvore{
     TCelula *raiz;
 }TArvore;
 
-// *** FUNÇÕES BÁSICAS (slides):
+// ********************************************************************** FUNÇÕES BÁSICAS (slides): **********************************************************************
 
 // -- CAMINHAMENTOS --
 //Permitem imprimir todas as chaves em uma sequência ordenada
@@ -219,7 +219,7 @@ void Retirar(TArvore *Arvore, TCelula **z){
     *z = NULL;
 }
 
-// *** FUNÇÕES ALEATÓRIAS
+// ********************************************************************** FUNÇÕES ALEATÓRIAS: **********************************************************************
 
 //Bancos de nomes para escolher aleatoriamente
 const char *nomesEventos[] = {
@@ -301,6 +301,8 @@ void InserirAleatorio(TCelula **x, TCelula *pai, TCidade Cidade) {
         InserirAleatorio(&(*x)->dir, (*x), Cidade);
     }
 }
+//^^^^ Modificar quando forem colocados os metodos de ordenação
+
 
 // -- PRÉ GERAR A ÁRVORE --
 // Não vamos dar opção de fazer isso sem ser aleatório por falta de tempo
@@ -323,23 +325,136 @@ void preencherArvore(TArvore *arvore) {
     }
 }
 
-// -- FUNÇÕES DE ORDENAÇÃO --
+// ********************************************************************** FUNÇÕES DE ORDENAÇÃO **********************************************************************
+//PARA ORDENAR OS EVENTOS DENTRO DA CIDADE DO MELHOR (10) PARA O PIOR (0)
 
 
-// -- FUNÇÕES DE BUSCA --
+// ********************************************************************** FUNÇÕES DE BUSCA **********************************************************************
 
-// Função para encontrar a melhor rota considerando nota e distância
 //PROVISÓRIA, PRECISO DELA PARA FAZER O SISTEMA DE CAIXEIRO VIAJANTE
-void encontrarMelhorRota(TCelula *raiz, char eventosEscolhidos[][MAX_NOME], int totalEventos) {
-    TCelula *cidadesEscolhidas[MAX_EVENTOS];
-    int horarios[MAX_EVENTOS];
-
-    for (int i = 0; i < totalEventos; i++) {
-        cidadesEscolhidas[i] = buscarEvento(raiz, eventosEscolhidos[i]);
-        if (cidadesEscolhidas[i]) {
-            horarios[i] = atoi(cidadesEscolhidas[i]->cidade.eventos[i].horario);
+// Função para buscar um evento na árvore e retornar a cidade/célula da cidade
+void buscarCidadesComEvento(TCelula *raiz, const char *eventoNome, TCelula *resultados[], int indices[], int *contador) {
+    if (raiz == NULL) return; //se a célula for NULL, não tem o que fazer mais
+    for (int i = 0; i < MAX_EVENTOS; i++) {
+        if (strcmp(raiz->cidade.eventos[i].nome, eventoNome) == 0) {
+            //Se o nome do evento "i" for igual ao nome do evento que queremos, então:
+            resultados[*contador] = raiz; //preenche uma posição do vetor com a célula que tem o evento
+            indices[*contador] = i; // Armazena o índice correto do evento para cada cidade
+            (*contador)++; //próxima posição do vetor
+            break; //Para o loop assim que encontra o evento
         }
     }
 
-// -- CAIXEIRO VIAJANTE MIRIM -- 
+    //repete o processo para todas as células da árvore, armazenando todas que tem o evento que queremos
+    buscarCidadesComEvento(raiz->esq, eventoNome, resultados, indices, contador);
+    buscarCidadesComEvento(raiz->dir, eventoNome, resultados, indices, contador);
+}
+
+// ********************************************************************** CAIXEIRO VIAJANTE MIRIM ********************************************************************** 
 //Nome dado porque o caixeiro não precisa voltar ao ponto inicial, só descobrir a melhor rota
+
+//Hora p min, esse deu mais trabalho do que parece kkkkkkkkkk
+int converterHorarioParaMinutos(const char *horario) {
+    int horas, minutos;
+    sscanf(horario, "%d:%d", &horas, &minutos);
+    return horas * 60 + minutos;
+}
+
+int calcularTempoViagem(int distancia) {
+    return distancia * 60 / 50;
+    //distância em km
+    //multiplica por 60 para ter o tempo em minutos, mas no caso deveria ser depois, multiplico antes por medo de dar problema com decimal, divide por 50, pq adotaremos 50km/h como velocidade
+}
+
+//adicionar coment dps  
+int calcularDistanciaAteRaiz(TCelula *cidade) {
+    int distancia = 0;
+    TCelula *atual = cidade;
+    while (atual->pai != NULL) {
+        if (atual == atual->pai->esq) {
+            distancia += atual->pai->cidade.distanciaEsq;
+        } else {
+            distancia += atual->pai->cidade.distanciaDir;
+        }
+        atual = atual->pai;
+    }
+    return distancia;
+}
+
+
+void encontrarMelhorRota(TArvore *arvore, char (*eventosEscolhidos)[MAX_NOME], int totalEventos) {
+    if (arvore->raiz == NULL) {
+        printf("Erro: Árvore vazia. Reinicie o aplicativo.\n");
+        return;
+    }
+    
+    TCelula *cidadesEscolhidas[MAX_EVENTOS];
+    int indicesEventos[MAX_EVENTOS];
+    int tempoAtual = 0;
+    
+    TCelula *opcoes[MAX_EVENTOS];
+int indices[MAX_EVENTOS];
+int contador = 0;
+for (int i = 0; i < totalEventos; i++) {
+        TCelula *opcoes[MAX_EVENTOS];
+        int indices[MAX_EVENTOS];
+        int contador = 0;
+        buscarCidadesComEvento(arvore->raiz, eventosEscolhidos[i], opcoes, indices, &contador);
+        
+        if (contador == 0) {
+            printf("Erro: Evento '%s' não encontrado.\n", eventosEscolhidos[i]);
+            return;
+        }
+        
+        // Escolher primeiro por nota, depois por distância
+        int melhorIndice = 0;
+        for (int j = 1; j < contador; j++) {
+            int notaAtual = opcoes[melhorIndice]->cidade.eventos[indices[melhorIndice]].nota;
+            int notaNova = opcoes[j]->cidade.eventos[indices[j]].nota;
+            int distanciaAtual = calcularDistanciaAteRaiz(opcoes[melhorIndice]);
+            int distanciaNova = calcularDistanciaAteRaiz(opcoes[j]);
+            
+            if (notaNova > notaAtual || (notaNova == notaAtual && distanciaNova < distanciaAtual)) {
+                melhorIndice = j;
+            }
+        }
+        cidadesEscolhidas[i] = opcoes[melhorIndice];
+        indicesEventos[i] = indices[melhorIndice];
+    }
+    
+    // Verificar se é possível chegar a tempo ao próximo evento
+    for (int i = 0; i < totalEventos - 1; i++) {
+        int distancia = calcularDistanciaAteRaiz(cidadesEscolhidas[i + 1]) - calcularDistanciaAteRaiz(cidadesEscolhidas[i]);
+        if (distancia < 0) distancia = -distancia;
+        
+        int tempoViagem = calcularTempoViagem(distancia);
+        int horarioAtual = converterHorarioParaMinutos(cidadesEscolhidas[i]->cidade.eventos[indicesEventos[i]].horario);
+        int horarioProximo = converterHorarioParaMinutos(cidadesEscolhidas[i + 1]->cidade.eventos[indicesEventos[i + 1]].horario);
+        
+        if (horarioAtual + tempoViagem > horarioProximo) {
+            printf("Não é possível visitar todos os eventos com prioridade na nota. Tentando priorizar o tempo...");
+            
+            // Segunda tentativa: priorizando tempo sobre nota
+            contador = 0;
+            buscarCidadesComEvento(arvore->raiz, eventosEscolhidos[i], opcoes, indices, &contador);
+            for (int i = 0; i < totalEventos; i++) {
+                int melhorIndice = 0;
+                for (int j = 1; j < contador; j++) {
+                    if (calcularDistanciaAteRaiz(opcoes[j]) < calcularDistanciaAteRaiz(opcoes[melhorIndice])) {
+                        melhorIndice = j;
+                    }
+                }
+                cidadesEscolhidas[i] = opcoes[melhorIndice];
+                indicesEventos[i] = indices[melhorIndice];
+            }
+            break;
+        }
+    }
+    
+    // Exibir a melhor rota
+    printf("Melhor rota:\n");
+    for (int i = 0; i < totalEventos; i++) {
+        printf("%s -> ", cidadesEscolhidas[i]->cidade.nome);
+    }
+    printf("FIM\n");
+}
