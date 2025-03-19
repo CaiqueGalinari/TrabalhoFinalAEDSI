@@ -256,6 +256,8 @@ void gerarEventos(TEvento eventos[]) {
             sprintf(eventos[totalEventos].horario, "%02d:%02d", rand() % 24, rand() % 60);
 
             eventos[totalEventos].nota = rand() % 11;
+
+            totalEventos++;
         }
     }
 }
@@ -309,20 +311,22 @@ void InserirAleatorio(TCelula **x, TCelula *pai, TCidade Cidade) {
 void preencherArvore(TArvore *arvore) {
     for (int i = 0; i < TOTAL_CIDADES; i++) {
         TCidade cidade;
-
         strcpy(cidade.nome, nomesCidades[rand() % 20]);
 
         cidade.distanciaEsq = rand() % 80 + 20;
+
+
         cidade.distanciaDir = rand() % 80 + 20;
+
 
         gerarEventos(cidade.eventos);
         cidade.chave = 0;
         for (int j = 0; j < MAX_EVENTOS; j++) {
             cidade.chave += cidade.eventos[j].nota;
         }
-
         InserirAleatorio(&arvore->raiz, NULL, cidade);
     }
+    printf("%s", arvore->raiz->esq->cidade.eventos[0].nome);
 }
 
 // ********************************************************************** FUNÇÕES DE ORDENAÇÃO **********************************************************************
@@ -408,11 +412,11 @@ void encontrarMelhorRota(TArvore *arvore, char (*eventosEscolhidos)[MAX_NOME], i
         printf("Erro: Árvore vazia. Reinicie o aplicativo.\n");
         return;
     }
+    printf("T1\n");
     
     //Variáveis que serão usadas
     TCelula *cidadesEscolhidas[MAX_EVENTOS]; //Armazenará as cidades da rota
     int indicesEventos[MAX_EVENTOS]; // guarda o indice do evento dentro da cidade
-    int tempoAtual = 0; //tempo total da rota
     
     TCelula *opcoes[MAX_EVENTOS]; //Guarda cidades onde o evento está disponível
     int indices[MAX_EVENTOS]; // Guarda o indice do evento dentro da cidade
@@ -456,6 +460,7 @@ void encontrarMelhorRota(TArvore *arvore, char (*eventosEscolhidos)[MAX_NOME], i
         cidadesEscolhidas[i] = opcoes[melhorIndice]; // A cidade escolhida é passada para o vetor das cidades
         indicesEventos[i] = indices[melhorIndice]; // O indice dos eventos também é passado (para que não o perca)
     }
+    printf("T2\n");
     
     // Verificar se é possível chegar a tempo ao próximo evento (por nota)
     for (int i = 0; i < totalEventos - 1; i++) {

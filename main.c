@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <AppBusca.h>
+#include "AppBusca.h"
 
 
 int main(){
@@ -19,13 +19,13 @@ int main(){
         printf("Quantos eventos deseja visitar? (1 a 4): ");
         scanf("%d", &totalEventos);
     } while (totalEventos < 1 || totalEventos > 4);
-    
+
     // Solicitar os eventos desejados
     for (int i = 0; i < totalEventos; i++) {
         printf("Digite o nome do evento %d: ", i + 1);
         scanf(" %49[^\n]", eventosEscolhidos[i]);
     }
-    
     encontrarMelhorRota(&arvore, eventosEscolhidos, totalEventos);
+    printf("\nVerificando... 5");
     //FIM CAIXEIRO
 }
