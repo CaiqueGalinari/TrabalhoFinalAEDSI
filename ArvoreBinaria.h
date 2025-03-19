@@ -7,6 +7,10 @@
 #define MAX_NOME 50
 #define TOTAL_CIDADES 10
 
+// -- BEM VINDO À BIBLIOTECA ArvoreBinaria.h --
+//Estaremos utilizando a árvore como forma de armazenar e buscar, mas também como forma de "desenho", ou seja, o desenho da árvore vai definir a disposição das cidades
+//Comentários para entendimento interno e do professor
+
 typedef struct evento {
     char nome[MAX_NOME];
     char horario[MAX_NOME];
@@ -31,17 +35,21 @@ typedef struct celula {
 typedef struct arvore{
     TCelula *raiz;
 }TArvore;
-// ^ Estrutura básica (precisa mecher em TCidade para ficar como ele pede)
 
-//fuções básicas:
+// *** FUNÇÕES BÁSICAS (slides):
 
 // -- CAMINHAMENTOS --
 //Permitem imprimir todas as chaves em uma sequência ordenada
+//>>Se for usado na interface, lembrar de imprimir os evendos também (com a nota deles)
+//Ex.: 
+//São Paulo:
+//Feira de Arte - (10)
+
 //Caminhamento central ou caminhamento in-ordem
 void Central(TCelula *x){
     if(x != NULL){
         Central(x->esq);
-        printf("%d ", x->cidade.chave); //Modificar aqui quando modificar a TCidade
+        printf("%d ", x->cidade.chave);
         Central(x->dir);
     }
 }
@@ -49,7 +57,7 @@ void Central(TCelula *x){
 //Caminhamento em pré-ordem.
 void PreOrdem(TCelula *x){
     if(x != NULL){
-        printf("%d ", x->cidade.chave); //Modificar aqui quando modificar a TCidade
+        printf("%d ", x->cidade.chave);
         PreOrdem(x->esq);
         PreOrdem(x->dir);
     }
@@ -60,7 +68,7 @@ void PosOrdem(TCelula *x){
     if(x != NULL){
         PosOrdem(x->esq);
         PosOrdem(x->dir);
-        printf("%d ", x->cidade.chave); //Modificar aqui quando modificar a TCidade
+        printf("%d ", x->cidade.chave);
     }
 }
 
@@ -172,6 +180,7 @@ void Inserir(TCelula **x, TCelula *pai, TCidade Cidade){
 
 // -- RETIRAR -- 
 //Transplante (trocar nós)
+//Será usado na ordenação, uma vez que a árvore será gerada aleatoriamente
 void Transplante(TArvore *Arvore, TCelula **u, TCelula **v){
     if((*u)->pai == NULL){
         Arvore->raiz = (*v);
@@ -210,21 +219,23 @@ void Retirar(TArvore *Arvore, TCelula **z){
     *z = NULL;
 }
 
-//FUNÇÕES ALEATÓRIAS
+// *** FUNÇÕES ALEATÓRIAS
 
+//Bancos de nomes para escolher aleatoriamente
 const char *nomesEventos[] = {
     "Festival de Musica", "Feira de Artesanato", "Exposicao de Arte", "Show ao Vivo", "Cinema ao Ar Livre",
     "Teatro Comunitario", "Corrida de Rua", "Palestra Motivacional", "Festival de Gastronomia", "Feira de Livros"
 };
 
+//Baseados em nomes de cidades reais, modifiquei pq n faz sentido "Rio de Janeiro" estar a 20km de "Fortaleza"
 const char *nomesCidades[] = {
-    "Sao Paulo", "Rio de Janeiro", "Belo Horizonte", "Curitiba", "Porto Alegre",
-    "Brasilia", "Salvador", "Recife", "Fortaleza", "Manaus",
-    "Belem", "Goiania", "Campinas", "Natal", "Joao Pessoa",
-    "Florianopolis", "Sao Luis", "Teresina", "Maceio", "Aracaju"
+    "Sao Vicente", "Rio de Março", "Lindo Horizonte", "Coolritiba", "Porto da Felicidade",
+    "Brasilica", "Salvador Dali", "Corais", "Castelo", "Mananeus",
+    "Betem", "Goiasia", "Campinhos", "Natalnael", "Joao Humano",
+    "Flor e Ópolis", "Dom Luis", "Teresinha", "Marceló", "Plantacaju"
 };
 
-//1. Função para ver se tem evento repetido
+//Evento repetido
 int eventoRepetido(TEvento eventos[], int totalEventos, const char *nome) {
     for (int i = 0; i < totalEventos; i++) {
         if (strcmp(eventos[i].nome, nome) == 0) {
@@ -234,7 +245,7 @@ int eventoRepetido(TEvento eventos[], int totalEventos, const char *nome) {
     return 0;
 }
 
-//2. Gera os eventos aleatórios, define o horário e a nota deles
+//Eventos aleatórios, com horário e nota
 void gerarEventos(TEvento eventos[]) {
     int totalEventos = 0;
     while (totalEventos < MAX_EVENTOS) {
@@ -244,23 +255,27 @@ void gerarEventos(TEvento eventos[]) {
 
             sprintf(eventos[totalEventos].horario, "%02d:%02d", rand() % 24, rand() % 60);
 
-            eventos[totalEventos].nota = rand() % 11; // Nota de 0 a 10
-            totalEventos++;
+            eventos[totalEventos].nota = rand() % 11;
         }
     }
 }
 
-//3. INSERIR ALEATORIO
+//-- INSERIR ALEATORIO --
+//Mesma coisa do insrir normal, só adiciona a parte da aleatoriedade
+
+//criaNo, mas dessa vez define:
+//Eventos aleatorios ao criar o no
+//Número da chave baseada na nota do evento
 TCelula* criaNoAleatorio(TCidade Cidade) {
     TCelula* novo = (TCelula*)malloc(sizeof(TCelula));
     if (novo != NULL) {
         novo->cidade = Cidade;
 
-        gerarEventos(novo->cidade.eventos); // Preencher eventos
+        gerarEventos(novo->cidade.eventos);
         novo->cidade.chave = 0;
 
         for (int i = 0; i < MAX_EVENTOS; i++) {
-            novo->cidade.chave += novo->cidade.eventos[i].nota; //Define o valor da chave
+            novo->cidade.chave += novo->cidade.eventos[i].nota;
         }
 
         novo->esq = NULL;
@@ -270,6 +285,7 @@ TCelula* criaNoAleatorio(TCidade Cidade) {
     return novo;
 }
 
+//Mesma ideia do criaNoaleatorio
 void InserirAleatorio(TCelula **x, TCelula *pai, TCidade Cidade) {
     if ((*x) == NULL) {
         (*x) = criaNoAleatorio(Cidade);
@@ -286,18 +302,19 @@ void InserirAleatorio(TCelula **x, TCelula *pai, TCidade Cidade) {
     }
 }
 
+// -- PRÉ GERAR A ÁRVORE --
+// Não vamos dar opção de fazer isso sem ser aleatório por falta de tempo
 void preencherArvore(TArvore *arvore) {
     for (int i = 0; i < TOTAL_CIDADES; i++) {
         TCidade cidade;
 
         strcpy(cidade.nome, nomesCidades[rand() % 20]);
 
-        cidade.distanciaEsq = rand() % 595 + 5; // Distancia entre 5 km e 600 km
-        cidade.distanciaDir = rand() % 595 + 5;
+        cidade.distanciaEsq = rand() % 80 + 20;
+        cidade.distanciaDir = rand() % 80 + 20;
 
-        gerarEventos(cidade.eventos); // Atribuir eventos
+        gerarEventos(cidade.eventos);
         cidade.chave = 0;
-
         for (int j = 0; j < MAX_EVENTOS; j++) {
             cidade.chave += cidade.eventos[j].nota;
         }
@@ -305,3 +322,24 @@ void preencherArvore(TArvore *arvore) {
         InserirAleatorio(&arvore->raiz, NULL, cidade);
     }
 }
+
+// -- FUNÇÕES DE ORDENAÇÃO --
+
+
+// -- FUNÇÕES DE BUSCA --
+
+// Função para encontrar a melhor rota considerando nota e distância
+//PROVISÓRIA, PRECISO DELA PARA FAZER O SISTEMA DE CAIXEIRO VIAJANTE
+void encontrarMelhorRota(TCelula *raiz, char eventosEscolhidos[][MAX_NOME], int totalEventos) {
+    TCelula *cidadesEscolhidas[MAX_EVENTOS];
+    int horarios[MAX_EVENTOS];
+
+    for (int i = 0; i < totalEventos; i++) {
+        cidadesEscolhidas[i] = buscarEvento(raiz, eventosEscolhidos[i]);
+        if (cidadesEscolhidas[i]) {
+            horarios[i] = atoi(cidadesEscolhidas[i]->cidade.eventos[i].horario);
+        }
+    }
+
+// -- CAIXEIRO VIAJANTE MIRIM -- 
+//Nome dado porque o caixeiro não precisa voltar ao ponto inicial, só descobrir a melhor rota
