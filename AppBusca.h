@@ -360,98 +360,165 @@ int converterHorarioParaMinutos(const char *horario) {
     return horas * 60 + minutos;
 }
 
+//Para cálculos futuros
 int calcularTempoViagem(int distancia) {
     return distancia * 60 / 50;
     //distância em km
     //multiplica por 60 para ter o tempo em minutos, mas no caso deveria ser depois, multiplico antes por medo de dar problema com decimal, divide por 50, pq adotaremos 50km/h como velocidade
+    //Queremos em minutos por causa da particularidade da hora (60min = 1h e não 100min = 1h)
 }
 
-//adicionar coment dps  
+//Necessário para ver qual rota tomar
 int calcularDistanciaAteRaiz(TCelula *cidade) {
-    int distancia = 0;
-    TCelula *atual = cidade;
+    int distancia = 0; //Variável em que as distâncias vão se acumular
+    TCelula *atual = cidade; //A cidade que será analisada a distância entre ela e a raiz
     while (atual->pai != NULL) {
         if (atual == atual->pai->esq) {
-            distancia += atual->pai->cidade.distanciaEsq;
+            // Se a cidade atual for a cidade à esquerda da cidade pai, então:
+            distancia += atual->pai->cidade.distanciaEsq; //(Acumula a distância dela até a cidade pai)
         } else {
-            distancia += atual->pai->cidade.distanciaDir;
+            // Se estiver à direita
+            distancia += atual->pai->cidade.distanciaDir; //(Acumula a distância dela até a cidade pai)
         }
         atual = atual->pai;
     }
-    return distancia;
+    return distancia; // Retorna a distância entre essa cidade e a raiz
 }
 
+// Essa será usada para otimizar, quebrei bastante a cabeça, porque anteriormente a função abaixo obrigava todas a passarem pela raiz, calculando um tempo impreciso
+TCelula* encontrarAncestralComum(TCelula* a, TCelula* b) {
+    while (a != b) {
+        if (a->pai == NULL) {return a;} //Se a for a raiz, retorna a
+        if (b->pai == NULL) {return b;} //Se b for a raiz, retorna b
+
+        if (a == b) {return a;}
+
+        //Se a estiver mais longe da raiz que b, então a recebe seu pai
+        if (calcularDistanciaAteRaiz(a) > calcularDistanciaAteRaiz(b)) a = a->pai;
+        //Do contrário b recebe seu pai
+        else b = b->pai;
+        //Isso vai se repetir até que sejam iguais, ou seja, sejam o ancestral comum um do outro
+    }
+    return a;
+}
 
 void encontrarMelhorRota(TArvore *arvore, char (*eventosEscolhidos)[MAX_NOME], int totalEventos) {
+    //Se a raiz for nula, então a arvore não existe, precisa reiniciar aplicativo
     if (arvore->raiz == NULL) {
         printf("Erro: Árvore vazia. Reinicie o aplicativo.\n");
         return;
     }
     
-    TCelula *cidadesEscolhidas[MAX_EVENTOS];
-    int indicesEventos[MAX_EVENTOS];
-    int tempoAtual = 0;
+    //Variáveis que serão usadas
+    TCelula *cidadesEscolhidas[MAX_EVENTOS]; //Armazenará as cidades da rota
+    int indicesEventos[MAX_EVENTOS]; // guarda o indice do evento dentro da cidade
+    int tempoAtual = 0; //tempo total da rota
     
-    TCelula *opcoes[MAX_EVENTOS];
-int indices[MAX_EVENTOS];
-int contador = 0;
-for (int i = 0; i < totalEventos; i++) {
-        TCelula *opcoes[MAX_EVENTOS];
-        int indices[MAX_EVENTOS];
-        int contador = 0;
+    TCelula *opcoes[MAX_EVENTOS]; //Guarda cidades onde o evento está disponível
+    int indices[MAX_EVENTOS]; // Guarda o indice do evento dentro da cidade
+    int contador = 0; // Conta quantas cidades possuem o evento
+
+    for (int i = 0; i < totalEventos; i++) { //percorre todos os eventos escolhidos
+
+        //Procura e armazena todas as cidades que têm o evento em questão
         buscarCidadesComEvento(arvore->raiz, eventosEscolhidos[i], opcoes, indices, &contador);
         
+        //Se o contador for 0, quer dizer que o evento não foi encontrado
         if (contador == 0) {
             printf("Erro: Evento '%s' não encontrado.\n", eventosEscolhidos[i]);
             return;
         }
         
-        // Escolher primeiro por nota, depois por distância
-        int melhorIndice = 0;
-        for (int j = 1; j < contador; j++) {
-            int notaAtual = opcoes[melhorIndice]->cidade.eventos[indices[melhorIndice]].nota;
-            int notaNova = opcoes[j]->cidade.eventos[indices[j]].nota;
-            int distanciaAtual = calcularDistanciaAteRaiz(opcoes[melhorIndice]);
-            int distanciaNova = calcularDistanciaAteRaiz(opcoes[j]);
+        //1 ESCOLHE A ROTA COM BASE NA NOTA
+        //2 SE NÃO FOR POSSÍVEL, ESCOLHE A ROTA COM BASE NA ROTA MAIS RÁPIDA, IGNORANDO A NOTA
+
+        int melhorIndice = 0; //Armazena o indice da melhor cidade encontrada até agora (a princípio a primeira)
+        //Lembrando que o contador é o numero de cidades total que possuem o evento
+
+        // ***** 1.:
+        for (int j = 1; j < contador; j++) { //percorre todas as cidades onde o evento está disponível
+
+            //indices[melhorIndice] é o indice do evento, opcoes[melhorIndice é o indice da cidade]
+            int notaAtual = opcoes[melhorIndice]->cidade.eventos[indices[melhorIndice]].nota; //Pega a melhor nota até agora
+
+            int notaNova = opcoes[j]->cidade.eventos[indices[j]].nota; //Pega a nota da próxima cidade (por isso j começa em 1)
+
+            int distanciaAtual = calcularDistanciaAteRaiz(opcoes[melhorIndice]); // Calcula a distância até a raiz da cidade com a melhor nota
+            int distanciaNova = calcularDistanciaAteRaiz(opcoes[j]); // Calcula a distância até a raiz da próxima cidade
             
+            //Aqui é interessante, se a nota da próxima cidade é maior
+            //OU se a nota das duas for igual, a que for mais perto é  escolhida
             if (notaNova > notaAtual || (notaNova == notaAtual && distanciaNova < distanciaAtual)) {
                 melhorIndice = j;
             }
         }
-        cidadesEscolhidas[i] = opcoes[melhorIndice];
-        indicesEventos[i] = indices[melhorIndice];
+
+        cidadesEscolhidas[i] = opcoes[melhorIndice]; // A cidade escolhida é passada para o vetor das cidades
+        indicesEventos[i] = indices[melhorIndice]; // O indice dos eventos também é passado (para que não o perca)
     }
     
-    // Verificar se é possível chegar a tempo ao próximo evento
+    // Verificar se é possível chegar a tempo ao próximo evento (por nota)
     for (int i = 0; i < totalEventos - 1; i++) {
-        int distancia = calcularDistanciaAteRaiz(cidadesEscolhidas[i + 1]) - calcularDistanciaAteRaiz(cidadesEscolhidas[i]);
-        if (distancia < 0) distancia = -distancia;
+        TCelula* ancestral = encontrarAncestralComum(cidadesEscolhidas[i], cidadesEscolhidas[i + 1]); //Encontra o ancestral comum entre as cidades escolhidas
+
+        // Calcula a distancia da primeira até a raiz e subtrai com a distancia da ancestral até a raiz, depois soma a esse mesmo processo com a outra cidade sendo comparada
+        int distancia = (calcularDistanciaAteRaiz(cidadesEscolhidas[i]) - calcularDistanciaAteRaiz(ancestral)) + (calcularDistanciaAteRaiz(cidadesEscolhidas[i + 1]) - calcularDistanciaAteRaiz(ancestral));
+        if (distancia < 0) {distancia = -distancia;} //Manutenção p evitar bug, n tem como ter distância negativa entre cidades
         
+        //Calcula o tempo de viagem dessa distância
         int tempoViagem = calcularTempoViagem(distancia);
-        int horarioAtual = converterHorarioParaMinutos(cidadesEscolhidas[i]->cidade.eventos[indicesEventos[i]].horario);
-        int horarioProximo = converterHorarioParaMinutos(cidadesEscolhidas[i + 1]->cidade.eventos[indicesEventos[i + 1]].horario);
+
+        int horarioAtual = converterHorarioParaMinutos(cidadesEscolhidas[i]->cidade.eventos[indicesEventos[i]].horario); //Pega o horario da cidade atual convertendo para minutos
+
+        int horarioProximo = converterHorarioParaMinutos(cidadesEscolhidas[i + 1]->cidade.eventos[indicesEventos[i + 1]].horario); //Mesma coisa, mas com a outra cidade
         
+        //Se o horario atual e o tempo de deslocamento for maior que o horario do proximo envento, então não será possível
         if (horarioAtual + tempoViagem > horarioProximo) {
             printf("Não é possível visitar todos os eventos com prioridade na nota. Tentando priorizar o tempo...");
             
-            // Segunda tentativa: priorizando tempo sobre nota
-            contador = 0;
-            buscarCidadesComEvento(arvore->raiz, eventosEscolhidos[i], opcoes, indices, &contador);
+            // ***** 2.
+            contador = 0; //Reinicia o contador que conta quantas cidades têm o evento
+            buscarCidadesComEvento(arvore->raiz, eventosEscolhidos[i], opcoes, indices, &contador); //mesmo processo anterior
             for (int i = 0; i < totalEventos; i++) {
                 int melhorIndice = 0;
+
                 for (int j = 1; j < contador; j++) {
-                    if (calcularDistanciaAteRaiz(opcoes[j]) < calcularDistanciaAteRaiz(opcoes[melhorIndice])) {
+                    if (calcularDistanciaAteRaiz(opcoes[j]) < calcularDistanciaAteRaiz(opcoes[melhorIndice])) { //Ao invés de comparar a nota, compara a distância, favorecendo a menor
                         melhorIndice = j;
                     }
                 }
                 cidadesEscolhidas[i] = opcoes[melhorIndice];
                 indicesEventos[i] = indices[melhorIndice];
             }
+
+            // Checar para ver se vai ser possível dar certo, se não for, mostrará um aviso
+            int eventoRemovido = -1; //Assumindo que não tem nenhum "empacado"
+            for (int i = 0; i < totalEventos - 1; i++) {
+
+                //Mesmo processo de cálculo de distância da linha 460 a 476
+                TCelula* ancestral = encontrarAncestralComum(cidadesEscolhidas[i], cidadesEscolhidas[i + 1]);
+                int distancia = (calcularDistanciaAteRaiz(cidadesEscolhidas[i]) - calcularDistanciaAteRaiz(ancestral)) + (calcularDistanciaAteRaiz(cidadesEscolhidas[i + 1]) - calcularDistanciaAteRaiz(ancestral));
+                if (distancia < 0) distancia = -distancia;
+                
+                int tempoViagem = calcularTempoViagem(distancia);
+                int horarioAtual = converterHorarioParaMinutos(cidadesEscolhidas[i]->cidade.eventos[indicesEventos[i]].horario);
+                int horarioProximo = converterHorarioParaMinutos(cidadesEscolhidas[i + 1]->cidade.eventos[indicesEventos[i + 1]].horario);
+                
+                if (horarioAtual + tempoViagem > horarioProximo) {
+                    //Adiciona 1 ao evento removido e quebra o laço for
+                    eventoRemovido = i + 1;
+                    break;
+                }
+            }
+            
+            if (eventoRemovido != -1) {
+                printf("Não é possível visitar todos os eventos desejados. O evento '%s' na cidade '%s' precisará ser removido da rota.", cidadesEscolhidas[eventoRemovido]->cidade.eventos[indicesEventos[eventoRemovido]].nome, cidadesEscolhidas[eventoRemovido]->cidade.nome);
+            }
             break;
         }
     }
     
-    // Exibir a melhor rota
+    // Printar a rota
     printf("Melhor rota:\n");
     for (int i = 0; i < totalEventos; i++) {
         printf("%s -> ", cidadesEscolhidas[i]->cidade.nome);

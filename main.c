@@ -9,6 +9,7 @@ int main(){
     preencherArvore(&arvore);
     //Básico, árvore montada
 
+    //INICIO CAIXEIRO
     //Danilo, essa é a parte do roteiro de viagem, você precisará colocar no lugar certo
     int totalEventos;
     char eventosEscolhidos[MAX_EVENTOS][MAX_NOME]; 
@@ -26,4 +27,5 @@ int main(){
     }
     
     encontrarMelhorRota(&arvore, eventosEscolhidos, totalEventos);
+    //FIM CAIXEIRO
 }
