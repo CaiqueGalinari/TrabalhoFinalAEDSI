@@ -93,54 +93,7 @@ void PosOrdem(TCelula *x){
 
 
 // -- BUSCA --
-// pesquisar cidade e confirmar a existencia
-TCelula* PesquisarCidade(TCelula *x, const char *nomeCidade) {
-    if (x == NULL) {
-        return NULL; 
-    }
-    if (strcmp(x->cidade.nome, nomeCidade) == 0) {
-        return x;  
-    }
-    TCelula *esq = PesquisarCidade(x->esq, nomeCidade);
-    if (esq != NULL) {
-        return esq;  
-    }
-    return PesquisarCidade(x->dir, nomeCidade);
-}
 
-void ConfirmarCidade(TArvore *arvore, const char *nomeCidade) {
-    TCelula *resultado = PesquisarCidade(arvore->raiz, nomeCidade);
-    if (resultado != NULL) {
-        printf("A cidade '%s' existe na árvore.\n", nomeCidade);
-    } else {
-        printf("A cidade '%s' não foi encontrada.\n", nomeCidade);
-    }
-}
-// pesquisar evento e confirmar a cidade
-TCelula* PesquisarEvento(TCelula *x, const char *nomeEvento) {
-    if (x == NULL) {
-        return NULL;  
-    }
-    for (int i = 0; i < MAX_EVENTOS; i++) {
-        if (strcmp(x->cidade.eventos[i].nome, nomeEvento) == 0) {
-            return x; 
-        }
-    }
-    TCelula *esq = PesquisarEvento(x->esq, nomeEvento);
-    if (esq != NULL) {
-        return esq; 
-    }
-    return PesquisarEvento(x->dir, nomeEvento);
-}
-
-void ConfirmarEvento(TArvore *arvore, const char *nomeEvento) {
-    TCelula *resultado = PesquisarEvento(arvore->raiz, nomeEvento);
-    if (resultado != NULL) {
-        printf("O evento '%s' está na cidade '%s'.\n", nomeEvento, resultado->cidade.nome);
-    } else {
-        printf("O evento '%s' não foi encontrado.\n", nomeEvento);
-    }
-}
 
 
 
@@ -350,6 +303,7 @@ void gerarEventos(TEvento eventos[]) {
             totalEventos++;
         }
     }
+    escolherOrdenacao(eventos, totalEventos);
 }
 
 //-- INSERIR ALEATORIO --
@@ -422,9 +376,287 @@ void preencherArvore(TArvore *arvore) {
     }
 }
 
+// pesquisar cidade e confirmar a existencia
+TCelula* PesquisarCidade(TCelula *x, const char *nomeCidade) {
+    if (x == NULL) {
+        return NULL; 
+    }
+    if (strcmp(x->cidade.nome, nomeCidade) == 0) {
+        return x;  
+    }
+    TCelula *esq = PesquisarCidade(x->esq, nomeCidade);
+    if (esq != NULL) {
+        return esq;  
+    }
+    return PesquisarCidade(x->dir, nomeCidade);
+}
+
+void ConfirmarCidade(TArvore *arvore, const char *nomeCidade) {
+    TCelula *resultado = PesquisarCidade(arvore->raiz, nomeCidade);
+    if (resultado != NULL) {
+        printf("A cidade '%s' existe na árvore.\n", nomeCidade);
+    } else {
+        printf("A cidade '%s' não foi encontrada.\n", nomeCidade);
+    }
+}
+// pesquisar evento e confirmar a cidade
+TCelula* PesquisarEvento(TCelula *x, const char *nomeEvento) {
+    if (x == NULL) {
+        return NULL;  
+    }
+    for (int i = 0; i < MAX_EVENTOS; i++) {
+        if (strcmp(x->cidade.eventos[i].nome, nomeEvento) == 0) {
+            return x; 
+        }
+    }
+    TCelula *esq = PesquisarEvento(x->esq, nomeEvento);
+    if (esq != NULL) {
+        return esq; 
+    }
+    return PesquisarEvento(x->dir, nomeEvento);
+}
+
+void ConfirmarEvento(TArvore *arvore, const char *nomeEvento) {
+    TCelula *resultado = PesquisarEvento(arvore->raiz, nomeEvento);
+    if (resultado != NULL) {
+        printf("O evento '%s' está na cidade '%s'.\n", nomeEvento, resultado->cidade.nome);
+    } else {
+        printf("O evento '%s' não foi encontrado.\n", nomeEvento);
+    }
+}
+
 // ********************************************************************** FUNÇÕES DE ORDENAÇÃO **********************************************************************
 //PARA ORDENAR OS EVENTOS DENTRO DA CIDADE DO MELHOR (10) PARA O PIOR (0)
+void bubbleSort(TEvento *eventos, int n)
+{
+    int i, fim;
+    TEvento aux;
+    for (fim = n - 1; fim > 0; --fim)
+    {
+        for (i = 0; i < fim; ++i)
+        {
+            if (eventos[i].nota < eventos[i + 1].nota)
+            {
+                aux = eventos[i];
+                eventos[i] = eventos[i + 1];
+                eventos[i + 1] = aux;
+            }
+        }
+    }
+}
 
+void selectionSort(TEvento *eventos, int n)
+{
+    int i, j, maxID;
+    TEvento aux;
+    for (i = 0; i < (n - 1); i++)
+    {
+        maxID = i;
+        for (j = i + 1; j < n; j++)
+        {
+            if (eventos[j].nota > eventos[maxID].nota)
+            {
+                maxID = j;
+            }
+        }
+        if (i != maxID)
+        {
+            aux = eventos[i];
+            eventos[i] = eventos[maxID];
+            eventos[maxID] = aux;
+        }
+    }
+}
+
+void insertionSort(TEvento *eventos, int n)
+{
+    int i, j;
+    TEvento aux;
+    for (i = 1; i < n; i++)
+    {
+        aux = eventos[i];
+        j = i - 1;
+        while (j >= 0 && eventos[j].nota < aux.nota)
+        {
+            eventos[j + 1] = eventos[j];
+            j--;
+        }
+        eventos[j + 1] = aux;
+    }
+}
+
+void shellSort(TEvento *eventos, int n)
+{
+    int i, j, intervalo;
+    TEvento temp;
+    for (intervalo = n / 2; intervalo > 0; intervalo /= 2)
+    {
+        for (i = intervalo; i < n; i++)
+        {
+            temp = eventos[i];
+            j = i;
+            while (j >= intervalo && eventos[j - intervalo].nota < temp.nota)
+            {
+                eventos[j] = eventos[j - intervalo];
+                j -= intervalo;
+            }
+            eventos[j] = temp;
+        }
+    }
+}
+
+void quickSort(TEvento *eventos, int inicio, int fim)
+{
+    if (inicio < fim)
+    {
+        int q = partirQuickSort(eventos, inicio, fim);
+        quickSort(eventos, inicio, q - 1);
+        quickSort(eventos, q + 1, fim);
+    }
+}
+
+int partirQuickSort(TEvento *eventos, int inicio, int fim)
+{
+    TEvento aux, pivo = eventos[fim];
+    int i = inicio - 1;
+    for (int j = inicio; j < fim; j++)
+    {
+        if (eventos[j].nota >= pivo.nota)
+        {
+            i++;
+            aux = eventos[i];
+            eventos[i] = eventos[j];
+            eventos[j] = aux;
+        }
+    }
+    aux = eventos[i + 1];
+    eventos[i + 1] = eventos[fim];
+    eventos[fim] = aux;
+    return i + 1;
+}
+
+void mergeSort(TEvento *eventos, int inicio, int fim)
+{
+    if (inicio < fim)
+    {
+        int meio = (inicio + fim) / 2;
+        mergeSort(eventos, inicio, meio);
+        mergeSort(eventos, meio + 1, fim);
+        merge(eventos, inicio, meio, fim);
+    }
+}
+
+void merge(TEvento *eventos, int inicio, int meio, int fim)
+{
+    int primeiraParte = inicio;
+    int segundaParte = meio + 1;
+    int parteAux = 0;
+    TEvento vetAux[fim - inicio + 1];
+
+    while (primeiraParte <= meio && segundaParte <= fim)
+    {
+        if (eventos[primeiraParte].nota >= eventos[segundaParte].nota)
+        {
+            vetAux[parteAux] = eventos[primeiraParte];
+            primeiraParte++;
+        }
+        else
+        {
+            vetAux[parteAux] = eventos[segundaParte];
+            segundaParte++;
+        }
+        parteAux++;
+    }
+
+    while (primeiraParte <= meio)
+    {
+        vetAux[parteAux] = eventos[primeiraParte];
+        parteAux++;
+        primeiraParte++;
+    }
+
+    while (segundaParte <= fim)
+    {
+        vetAux[parteAux] = eventos[segundaParte];
+        parteAux++;
+        segundaParte++;
+    }
+
+    for (parteAux = inicio; parteAux <= fim; parteAux++)
+    {
+        eventos[parteAux] = vetAux[parteAux - inicio];
+    }
+}
+
+void montarHeapSort(TEvento *eventos, int n, int i)
+{
+    int maior = i;
+    int esquerda = 2 * i + 1;
+    int direita = 2 * i + 2;
+    TEvento aux;
+
+    if (esquerda < n && eventos[esquerda].nota > eventos[maior].nota)
+    {
+        maior = esquerda;
+    }
+
+    if (direita < n && eventos[direita].nota > eventos[maior].nota)
+    {
+        maior = direita;
+    }
+
+    if (maior != i)
+    {
+        aux = eventos[i];
+        eventos[i] = eventos[maior];
+        eventos[maior] = aux;
+        montarHeapSort(eventos, n, maior);
+    }
+}
+
+void heapSort(TEvento *eventos, int n)
+{
+    TEvento aux;
+    for (int i = n / 2 - 1; i >= 0; i--)
+    {
+        montarHeapSort(eventos, n, i);
+    }
+
+    for (int i = n - 1; i >= 0; i--)
+    {
+        aux = eventos[0];
+        eventos[0] = eventos[i];
+        eventos[i] = aux;
+        montarHeapSort(eventos, i, 0);
+    }
+}
+
+void escolherOrdenacao(TEvento *eventos, int n){
+    int tipoOrdenacao = rand() % 6;
+    switch (tipoOrdenacao)
+    {
+    case 0:
+        bubbleSort(eventos, n);
+        break;
+    case 1:
+        selectionSort(eventos, n);
+        break;
+    case 2:
+        insertionSort(eventos, n);
+        break;
+    case 3:
+        shellSort(eventos, n);
+        break;
+    case 4:
+        quickSort(eventos, 0, n - 1);
+        break;
+    case 5:
+        mergeSort(eventos, 0, n - 1);
+        break;
+    default:
+        break;
+    }
+}
 
 // ********************************************************************** FUNÇÕES DE BUSCA **********************************************************************
 
