@@ -8,6 +8,8 @@ int main(){
     TArvore arvore = {NULL};
     preencherArvore(&arvore);
     //Básico, árvore montada
+    
+    Central(arvore.raiz);
 
     //INICIO CAIXEIRO
     //Danilo, essa é a parte do roteiro de viagem, você precisará colocar no lugar certo
@@ -20,12 +22,14 @@ int main(){
         scanf("%d", &totalEventos);
     } while (totalEventos < 1 || totalEventos > 4);
 
+    imprimirEventoPorHora(arvore.raiz);
+
     // Solicitar os eventos desejados
     for (int i = 0; i < totalEventos; i++) {
         printf("Digite o nome do evento %d: ", i + 1);
         scanf(" %49[^\n]", eventosEscolhidos[i]);
     }
     encontrarMelhorRota(&arvore, eventosEscolhidos, totalEventos);
-    printf("\nVerificando... 5");
+    liberarArvore(arvore.raiz);
     //FIM CAIXEIRO
 }
