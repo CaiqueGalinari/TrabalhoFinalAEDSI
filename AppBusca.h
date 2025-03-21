@@ -93,16 +93,55 @@ void PosOrdem(TCelula *x){
 
 
 // -- BUSCA --
-TCelula* Pesquisar(TCelula *x, TCidade Cidade){
-    if((x == NULL)||(x->cidade.chave == Cidade.chave)){
-        return x;
+// pesquisar cidade e confirmar a existencia
+TCelula* PesquisarCidade(TCelula *x, const char *nomeCidade) {
+    if (x == NULL) {
+        return NULL; 
     }
-    if(Cidade.chave < x->cidade.chave){
-        return Pesquisar(x->esq, Cidade);
-    } else if(Cidade.chave > x->cidade.chave){
-        return Pesquisar(x->dir, Cidade);
+    if (strcmp(x->cidade.nome, nomeCidade) == 0) {
+        return x;  
+    }
+    TCelula *esq = PesquisarCidade(x->esq, nomeCidade);
+    if (esq != NULL) {
+        return esq;  
+    }
+    return PesquisarCidade(x->dir, nomeCidade);
+}
+
+void ConfirmarCidade(TArvore *arvore, const char *nomeCidade) {
+    TCelula *resultado = PesquisarCidade(arvore->raiz, nomeCidade);
+    if (resultado != NULL) {
+        printf("A cidade '%s' existe na árvore.\n", nomeCidade);
+    } else {
+        printf("A cidade '%s' não foi encontrada.\n", nomeCidade);
     }
 }
+// pesquisar evento e confirmar a cidade
+TCelula* PesquisarEvento(TCelula *x, const char *nomeEvento) {
+    if (x == NULL) {
+        return NULL;  
+    }
+    for (int i = 0; i < MAX_EVENTOS; i++) {
+        if (strcmp(x->cidade.eventos[i].nome, nomeEvento) == 0) {
+            return x; 
+        }
+    }
+    TCelula *esq = PesquisarEvento(x->esq, nomeEvento);
+    if (esq != NULL) {
+        return esq; 
+    }
+    return PesquisarEvento(x->dir, nomeEvento);
+}
+
+void ConfirmarEvento(TArvore *arvore, const char *nomeEvento) {
+    TCelula *resultado = PesquisarEvento(arvore->raiz, nomeEvento);
+    if (resultado != NULL) {
+        printf("O evento '%s' está na cidade '%s'.\n", nomeEvento, resultado->cidade.nome);
+    } else {
+        printf("O evento '%s' não foi encontrado.\n", nomeEvento);
+    }
+}
+
 
 
 // -- MÍNIMO E MÁXIMO --
