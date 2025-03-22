@@ -428,11 +428,11 @@ void ConfirmarEvento(TArvore *arvore, const char *nomeEvento) {
     if (contador > 0) {
         printf("O evento '%s' foi encontrado nas seguintes cidades:\n", nomeEvento);
         for (int i = 0; i < contador; i++) {
-            printf("- %s -\n", resultados[i]->cidade.nome);
             for (int j = 0; j < MAX_EVENTOS; j++) {
                 if (strcmp(resultados[i]->cidade.eventos[j].nome, nomeEvento) == 0) {
-                    printf("Nota: %d\nInicio: %s\nFim: %s\n\n", resultados[i]->cidade.eventos[i].nota, resultados[i]->cidade.eventos[i].horario, resultados[i]->cidade.eventos[i].horarioFinal);
+                    printf("%s Nota: %d - Inicio: %s a Fim: %s -",nomeEvento, resultados[i]->cidade.eventos[i].nota, resultados[i]->cidade.eventos[i].horario, resultados[i]->cidade.eventos[i].horarioFinal);
                 }
+            printf(" %s \n", resultados[i]->cidade.nome);
             }
         }
         
