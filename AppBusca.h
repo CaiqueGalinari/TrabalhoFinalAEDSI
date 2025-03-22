@@ -400,28 +400,44 @@ void ConfirmarCidade(TArvore *arvore, const char *nomeCidade) {
     }
 }
 // pesquisar evento e confirmar a cidade
-TCelula* PesquisarEvento(TCelula *x, const char *nomeEvento) {
+void BuscarCidadesComEvento(TCelula *x, const char *nomeEvento, TCelula *resultados[], int *contador) {
     if (x == NULL) {
-        return NULL;  
+        return;  
     }
+
     for (int i = 0; i < MAX_EVENTOS; i++) {
         if (strcmp(x->cidade.eventos[i].nome, nomeEvento) == 0) {
-            return x; 
+            resultados[*contador] = x;  
+            (*contador)++;
+            break;  
         }
     }
-    TCelula *esq = PesquisarEvento(x->esq, nomeEvento);
-    if (esq != NULL) {
-        return esq; 
-    }
-    return PesquisarEvento(x->dir, nomeEvento);
+
+    BuscarCidadesComEvento(x->esq, nomeEvento, resultados, contador);
+    BuscarCidadesComEvento(x->dir, nomeEvento, resultados, contador);
 }
 
+// Função auxiliar para listar todas as cidades que possuem o evento
 void ConfirmarEvento(TArvore *arvore, const char *nomeEvento) {
-    TCelula *resultado = PesquisarEvento(arvore->raiz, nomeEvento);
-    if (resultado != NULL) {
-        printf("O evento '%s' está na cidade '%s'.\n", nomeEvento, resultado->cidade.nome);
+    TCelula *resultados[100];  // Vetor para armazenar até 100 cidades
+    int contador = 0;  // Inicializa o contador de cidades encontradas
+
+    BuscarCidadesComEvento(arvore->raiz, nomeEvento, resultados, &contador);
+
+    // Exibe os resultados
+    if (contador > 0) {
+        printf("O evento '%s' foi encontrado nas seguintes cidades:\n", nomeEvento);
+        for (int i = 0; i < contador; i++) {
+            printf("- %s -\n", resultados[i]->cidade.nome);
+            for (int j = 0; j < MAX_EVENTOS; j++) {
+                if (strcmp(resultados[i]->cidade.eventos[j].nome, nomeEvento) == 0) {
+                    printf("Nota: %d\nInicio: %s\nFim: %s\n\n", resultados[i]->cidade.eventos[i].nota, resultados[i]->cidade.eventos[i].horario, resultados[i]->cidade.eventos[i].horarioFinal);
+                }
+            }
+        }
+        
     } else {
-        printf("O evento '%s' não foi encontrado.\n", nomeEvento);
+        printf("O evento '%s' não foi encontrado em nenhuma cidade.\n", nomeEvento);
     }
 }
 
