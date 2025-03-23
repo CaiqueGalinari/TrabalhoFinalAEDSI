@@ -419,8 +419,8 @@ void BuscarCidadesComEvento(TCelula *x, const char *nomeEvento, TCelula *resulta
 
 // Função auxiliar para listar todas as cidades que possuem o evento
 void ConfirmarEvento(TArvore *arvore, const char *nomeEvento) {
-    TCelula *resultados[100];  // Vetor para armazenar até 100 cidades
-    int contador = 0;  // Inicializa o contador de cidades encontradas
+    TCelula *resultados[100];  
+    int contador = 0; 
 
     BuscarCidadesComEvento(arvore->raiz, nomeEvento, resultados, &contador);
 
