@@ -432,8 +432,8 @@ void ConfirmarEvento(TArvore *arvore, const char *nomeEvento) {
                 if (strcmp(resultados[i]->cidade.eventos[j].nome, nomeEvento) == 0) {
                     printf("%s Nota: %d - Inicio: %s a Fim: %s -",nomeEvento, resultados[i]->cidade.eventos[i].nota, resultados[i]->cidade.eventos[i].horario, resultados[i]->cidade.eventos[i].horarioFinal);
                 }
-            printf(" %s \n", resultados[i]->cidade.nome);
             }
+        printf(" %s \n", resultados[i]->cidade.nome);
         }
         
     } else {
