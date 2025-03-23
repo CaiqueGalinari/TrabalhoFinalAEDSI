@@ -46,7 +46,7 @@ int main(){
         printf("2 - Buscar uma cidade\n");
         printf("3 - Buscar um evento\n");
         printf("4 - Ver os eventos do dia\n");
-        printf("Escolha uma opção: ");
+        printf("Escolha uma opcao: ");
         scanf("%d", &opcao);
 
         switch (opcao) {
